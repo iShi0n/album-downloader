@@ -6,6 +6,7 @@ from pprint import pprint
 
 import mutagen
 from mutagen.easyid3 import EasyID3
+from mutagen.id3 import ID3, APIC, TPE1, TIT2, TRCK, TALB
 from pytube import YouTube #TODO: try to make it manually
 from bs4 import BeautifulSoup as bs
 
@@ -15,14 +16,15 @@ class AlbumDownloader(object):
         def __init__(self, video_id: str, thumbnail: str, title: str) -> None:
             self.video_id = video_id
             self.title = title
-            self.thumbnail = thumbnail
+            self.thumbnail_src = thumbnail
+            self.thumbnail = requests.get(self.thumbnail_src).content
             self.url = "https://youtube.com/watch?v="+self.video_id
             self.mp3_src = YouTube(self.url).streams.get_audio_only().url
 
             self.mp3_filename = f"{self.title}.mp3"
 
         def __dict__(self):
-            return {"video_id": self.video_id, "title": self.title, "thumbnail": self.thumbnail, "url": self.url}
+            return {"video_id": self.video_id, "title": self.title, "thumbnail": self.thumbnail_src, "url": self.url}
 
         def __repr__(self):
             return str(self.__dict__())
@@ -57,15 +59,22 @@ class AlbumDownloader(object):
         def set_metadata(self, album_title, remove_from_title=""):
             title = self.title.replace(remove_from_title, "")
             
-            try:
-                mp3_file = EasyID3(self.mp3_full_path)
-            except:
-                mp3_file = mutagen.File(self.mp3_full_path, easy=True)
+            # try:
+            #     mp3_file = EasyID3(self.mp3_full_path)
+            # except:
+            #     mp3_file = mutagen.File(self.mp3_full_path, easy=True)
+            
+            
+            mp3_file = ID3(self.mp3_full_path)
 
-            mp3_file["title"] = title
-            mp3_file["album"] = album_title
-            mp3_file["artist"] = self._get_artist()
-            mp3_file.save()
+
+
+            mp3_file["TIT2"] = TALB(encoding=3, text=title)
+            mp3_file["TALB"] = TALB(encoding=3, text=album_title)
+            mp3_file["TPE1"] = TPE1(encoding=3, text=self._get_artist())
+            mp3_file['APIC'] = APIC(encoding=3, mime='image/jpeg', type=3, desc=album_title, data=self.thumbnail)
+            mp3_file.save(self.mp3_full_path)
+
 
     class Album(object):
         def __init__(self, playlist_id: str, title: str, tracks: "Track") -> None:

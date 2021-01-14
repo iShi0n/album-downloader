@@ -4,9 +4,7 @@ import re
 import json
 from pprint import pprint
 
-import mutagen
-from mutagen.easyid3 import EasyID3
-from mutagen.id3 import ID3, APIC, TPE1, TIT2, TRCK, TALB
+import eyed3
 from pytube import YouTube #TODO: try to make it manually
 from bs4 import BeautifulSoup as bs
 
@@ -19,7 +17,7 @@ class AlbumDownloader(object):
             self.thumbnail_src = thumbnail
             self.thumbnail = requests.get(self.thumbnail_src).content
             self.url = "https://youtube.com/watch?v="+self.video_id
-            self.mp3_src = YouTube(self.url).streams.get_audio_only().url
+            self.mp3_src = YouTube(self.url).streams.get_audio_only("webm").url
 
             self.mp3_filename = f"{self.title}.mp3"
 
@@ -65,15 +63,19 @@ class AlbumDownloader(object):
             #     mp3_file = mutagen.File(self.mp3_full_path, easy=True)
             
             
-            mp3_file = ID3(self.mp3_full_path)
+            mp3_file = eyed3.load(self.mp3_full_path)
+            
+            mp3_file.initTag()
 
+            mp3_file.tag.artist = self._get_artist()
+            mp3_file.tag.album = album_title
+            mp3_file.tag.save()
 
-
-            mp3_file["TIT2"] = TALB(encoding=3, text=title)
-            mp3_file["TALB"] = TALB(encoding=3, text=album_title)
-            mp3_file["TPE1"] = TPE1(encoding=3, text=self._get_artist())
-            mp3_file['APIC'] = APIC(encoding=3, mime='image/jpeg', type=3, desc=album_title, data=self.thumbnail)
-            mp3_file.save(self.mp3_full_path)
+            # mp3_file.tags.add(APIC(encoding=3, mime='image/jpeg', type=3, desc=album_title, data=self.thumbnail))
+            # mp3_file.tags.add(TALB(encoding=3, text=title))
+            # mp3_file.tags.add(TALB(encoding=3, text=album_title))
+            # mp3_file.tags.add(TPE1(encoding=3, text=self._get_artist()))
+            # mp3_file.save(self.mp3_full_path)
 
 
     class Album(object):
@@ -101,8 +103,9 @@ class AlbumDownloader(object):
 
     @staticmethod
     def get_playlist_info(playlist_url: str):
+        print(1)
         response = requests.get(playlist_url)
-
+        print(2)
         if response.status_code != 200:
             return
 
@@ -112,7 +115,7 @@ class AlbumDownloader(object):
         playlist_id = json_info["playlistId"]
 
         tracks = []
-
+        print(2.5)
         for video in json_info["contents"]:
             video = video["playlistVideoRenderer"]
 
@@ -123,8 +126,9 @@ class AlbumDownloader(object):
 
             tracks.append(AlbumDownloader.Track(video_id=video_id, title=video_title, thumbnail=video_thumbnail))
 
+        print(3)
         response = requests.get(tracks[0].url)
-
+        print(4)
         try:
             album_name = re.search(r"(?<=\"metadataRowRenderer\":{\"title\":{\"simpleText\":\".lbum\"},\"contents\":\[{\"simpleText\":\").*?(?=\"}])", response.text).group()
         except:

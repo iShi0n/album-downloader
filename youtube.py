@@ -9,7 +9,7 @@ from pytube import YouTube #TODO: try to make it manually
 from bs4 import BeautifulSoup as bs
 
 
-class AlbumDownloader(object):
+class YouTube(object):
     class Track(object):
         def __init__(self, video_id: str, thumbnail: str, title: str) -> None:
             self.video_id = video_id
@@ -124,7 +124,7 @@ class AlbumDownloader(object):
             # Get the last thumbnail src. Last = better quality.
             video_thumbnail = video["thumbnail"]["thumbnails"][-1]["url"]
 
-            tracks.append(AlbumDownloader.Track(video_id=video_id, title=video_title, thumbnail=video_thumbnail))
+            tracks.append(YouTube.Track(video_id=video_id, title=video_title, thumbnail=video_thumbnail))
 
         print(3)
         response = requests.get(tracks[0].url)
@@ -134,7 +134,7 @@ class AlbumDownloader(object):
         except:
             album_name = input("[x]Nome do album não encontrado. Digite manualmente: ")
 
-        album = AlbumDownloader.Album(playlist_id, album_name, tracks)
+        album = YouTube.Album(playlist_id, album_name, tracks)
 
         print("[+]Álbum: "+album.title)
         print("[+]Número de músicas:", len(album.tracks))
@@ -143,4 +143,4 @@ class AlbumDownloader(object):
 
 
 
-AlbumDownloader.get_playlist_info("https://www.youtube.com/playlist?list=PLGeJR8ZOrTZdMuBWM9IYta6IoHKku0nH4")
+YouTube.get_playlist_info("https://www.youtube.com/playlist?list=PLGeJR8ZOrTZdMuBWM9IYta6IoHKku0nH4")

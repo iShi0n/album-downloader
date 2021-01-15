@@ -102,7 +102,7 @@ class YouTube(object):
 
 
     @staticmethod
-    def get_playlist_info(playlist_url: str):
+    def get_playlist_info(playlist_url: str) -> "Album":
         print(1)
         response = requests.get(playlist_url)
         print(2)
@@ -141,6 +141,3 @@ class YouTube(object):
 
         album.tracks[0].download(album.title)
 
-
-
-YouTube.get_playlist_info("https://www.youtube.com/playlist?list=PLGeJR8ZOrTZdMuBWM9IYta6IoHKku0nH4")

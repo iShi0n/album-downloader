@@ -78,51 +78,51 @@ class SoundCloud(object):
             for track in self.tracks:
                 track.download(self.album_title)
 
-        @staticmethod
-        def get_set_info(set_url: str, remove_from_title="") -> "Album":
-            """Pega informações do set (album/playlist).
+    @staticmethod
+    def get_set_info(set_url: str, remove_from_title="") -> "Album":
+        """Pega informações do set (album/playlist).
 
-            Args:
-                remove_from_title (str, optional): remove um texto do titule da música. ex. se o titulo for bladee - romeo, você pode passar "bladee - " para a função para que seja removido. Defaults to "".
+        Args:
+            remove_from_title (str, optional): remove um texto do titule da música. ex. se o titulo for bladee - romeo, você pode passar "bladee - " para a função para que seja removido. Defaults to "".
 
-            Raises:
-                Exception: Status code != 200
-                Exception: playlist_id not found
+        Raises:
+            Exception: Status code != 200
+            Exception: playlist_id not found
 
-            Returns:
-                Album: Objeto do album
-            """
+        Returns:
+            Album: Objeto do album
+        """
 
-            response = requests.get(set_url)
+        response = requests.get(set_url)
 
-            if response.status_code != 200:
-                raise Exception(f"status code: {response.status_code}")
+        if response.status_code != 200:
+            raise Exception(f"status code: {response.status_code}")
 
-            try:
-                playlist_id = re.search(
-                    r"(?<=soundcloud://playlists:)\d*", response.text).group()
-            except:
-                raise Exception("playlist_id not found")
+        try:
+            playlist_id = re.search(
+                r"(?<=soundcloud://playlists:)\d*", response.text).group()
+        except:
+            raise Exception("playlist_id not found")
 
-            tracks_json = requests.get(
-                f"https://api.soundcloud.com/playlists/{playlist_id}?client_id={self.client_id}").json()
+        tracks_json = requests.get(
+            f"https://api.soundcloud.com/playlists/{playlist_id}?client_id={SoundCloud.client_id}").json()
 
-            tracks = []
+        tracks = []
 
-            for track_num, track in enumerate(tracks_json["tracks"]):
-                title = track["title"]
-                genre = track["genre"]
-                artist = track["user"]["username"]
-                stream_url = track["stream_url"]
-                thumbnail = track["artwork_url"]
+        for track_num, track in enumerate(tracks_json["tracks"]):
+            title = track["title"]
+            genre = track["genre"]
+            artist = track["user"]["username"]
+            stream_url = track["stream_url"]
+            thumbnail = track["artwork_url"]
 
-                tracks.append(SoundCloud.Track(title.replace(remove_from_title, ""), genre, artist, thumbnail, stream_url, track_num+1))
+            tracks.append(SoundCloud.Track(title.replace(remove_from_title, ""), genre, artist, thumbnail, stream_url, track_num+1))
 
-            album_id = tracks_json["id"]
-            album_title = tracks_json["title"]
-            album_thumbnail = tracks_json["artwork_url"]
-            album_permalink = tracks_json["permalink_url"]
+        album_id = tracks_json["id"]
+        album_title = tracks_json["title"]
+        album_thumbnail = tracks_json["artwork_url"]
+        album_permalink = tracks_json["permalink_url"]
 
-            album = SoundCloud.Album(album_id, album_title,album_permalink, album_thumbnail, tracks)
+        album = SoundCloud.Album(album_id, album_title,album_permalink, album_thumbnail, tracks)
 
-            return album
+        return album

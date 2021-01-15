@@ -1,5 +1,4 @@
 import requests
-import json
 import re
 import os
 import eyed3
@@ -128,8 +127,3 @@ class SoundCloud(object):
         album = self.Album(album_id, album_title,album_permalink, album_thumbnail, tracks)
 
         return album
-
-
-soundcloud = SoundCloud()
-album = soundcloud.get_set_info("https://soundcloud.com/barad_dur/sets/the-dark-tower")
-album.download()

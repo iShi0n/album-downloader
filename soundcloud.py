@@ -44,7 +44,7 @@ class SoundCloud(object):
             self.album_title = album_title
             self.mp3_fullpath = f"{album_title}/{self.mp3_filename}"
 
-            with open(self.mp3_fullpath, "wb") as mp3_file:
+            with open(self.mp3_fullpath, "wb") as mp3_file: #TODO: remover \/:*?"<>| dos nomes das musicas"
                 mp3_content = requests.get(self.stream_url).content
                 mp3_file.write(mp3_content)
                 mp3_file.close()

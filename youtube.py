@@ -1,13 +1,11 @@
 import os
-import requests
 import re
 import json
 import subprocess
-from pprint import pprint
 
 import eyed3
-import pytube #TODO: try to make it manually
-from bs4 import BeautifulSoup as bs
+import pytube  # TODO: try to make it manually
+import requests
 
 
 class YouTube(object):
@@ -39,13 +37,12 @@ class YouTube(object):
                 exit(str(e))
 
             self.mp3_full_path = re.sub(r'\\|/|:|\?|\"|\<|\>', '', album_title)+"/"+self.mp3_filename
-            
 
             with open(self.mp3_full_path, "wb") as mp3_file:
                 mp3_content = requests.get(self.mp3_src).content
                 mp3_file.write(mp3_content)
                 mp3_file.close()
-            
+
             self.convert()
             self.set_metadata(album_title, remove_from_title="bladee - ")
 
@@ -53,44 +50,29 @@ class YouTube(object):
             response = requests.get(self.url)
 
             try:
-                artist_name = re.search(r"(?<=\"metadataRowRenderer\":{\"title\":{\"simpleText\":\"Artista\"},\"contents\":\[{\"simpleText\":\").*?(?=\"}])", response.text).group() #TODO: tentar capturar Artist e Artista. (caso esteja em outra linguagem)
+                # TODO: tentar capturar Artist e Artista. (caso esteja em outra linguagem)
+                artist_name = re.search(r"(?<=\"metadataRowRenderer\":{\"title\":{\"simpleText\":\"Artista\"},\"contents\":\[{\"simpleText\":\").*?(?=\"}])", response.text).group()
             except:
                 artist_name = input("[x]Nome do artista não encontrado. Digite manualmente: ")
 
             return artist_name
-        
+
         def convert(self):
-            subprocess.call(f'ffmpeg -i "{self.mp3_full_path}" "tmp-{self.mp3_filename}"', shell=True)
+            subprocess.call(f'ffmpeg -i "{self.mp3_full_path}" "tmp-{self.mp3_filename}"', shell=True, stdout=subprocess.DEVNULL, stdin=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             os.remove(self.mp3_full_path)
             os.rename(f'tmp-{self.mp3_filename}', self.mp3_full_path)
 
-
         def set_metadata(self, album_title, remove_from_title=""):
             title = self.title.replace(remove_from_title, "")
-            
-            # try:
-            #     mp3_file = EasyID3(self.mp3_full_path)
-            # except:
-            #     mp3_file = mutagen.File(self.mp3_full_path, easy=True)
-            
-            
+
             mp3_file = eyed3.load(self.mp3_full_path)
-            
             mp3_file.initTag()
 
-            
             mp3_file.tag.title = title
             mp3_file.tag.track_num = self.track
             mp3_file.tag.artist = self._get_artist()
             mp3_file.tag.album = album_title
             mp3_file.tag.save()
-
-            # mp3_file.tags.add(APIC(encoding=3, mime='image/jpeg', type=3, desc=album_title, data=self.thumbnail))
-            # mp3_file.tags.add(TALB(encoding=3, text=title))
-            # mp3_file.tags.add(TALB(encoding=3, text=album_title))
-            # mp3_file.tags.add(TPE1(encoding=3, text=self._get_artist()))
-            # mp3_file.save(self.mp3_full_path)
-
 
     class Album(object):
         def __init__(self, playlist_id: str, title: str, tracks: "Track") -> None:
@@ -110,15 +92,15 @@ class YouTube(object):
         def download(self, album_title=""):
             if album_title != "":
                 self.title = album_title
-            
+
             for track in self.tracks:
                 track.download(self.title)
 
     @staticmethod
-    def get_playlist_info(playlist_url: str, remove_from_title: str="") -> "Album":
-        
+    def get_playlist_info(playlist_url: str, remove_from_title: str = "") -> "Album":
+
         response = requests.get(playlist_url)
-        
+
         if response.status_code != 200:
             return
 
@@ -128,7 +110,7 @@ class YouTube(object):
         playlist_id = json_info["playlistId"]
 
         tracks = []
-        
+
         for track, video in enumerate(json_info["contents"]):
             video = video["playlistVideoRenderer"]
 
@@ -152,4 +134,3 @@ class YouTube(object):
         print("[+]Número de músicas:", len(album.tracks))
 
         return album
-

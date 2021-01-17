@@ -11,7 +11,7 @@ remove_from_title = ""
 if len(argv) == 3:
     remove_from_title = argv[3]
 
-if album.startswith("https://youtube"):
+if "youtube.com" in album:
     YouTube.get_playlist_info(album, remove_from_title).download()
-elif album.startswith("https://soundcloud"):
+elif "soundcloud.com" in album:
     SoundCloud.get_set_info(album, remove_from_title).download()

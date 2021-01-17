@@ -48,7 +48,6 @@ class SoundCloud(object):
                 album_title (str): título do album
             """
 
-            self.title = album_title
             self.mp3_fullpath = re.sub(r'\\|/|:|\?|\"|\<|\>', ' ', album_title)+"/"+self.mp3_filename
 
 

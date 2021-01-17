@@ -2,24 +2,27 @@ import os
 import requests
 import re
 import json
+import subprocess
 from pprint import pprint
 
 import eyed3
-from pytube import YouTube #TODO: try to make it manually
+import pytube #TODO: try to make it manually
 from bs4 import BeautifulSoup as bs
 
 
 class YouTube(object):
     class Track(object):
-        def __init__(self, video_id: str, thumbnail: str, title: str) -> None:
+        def __init__(self, video_id: str, thumbnail: str, title: str, track: int) -> None:
             self.video_id = video_id
             self.title = title
+            self.track = track
             self.thumbnail_src = thumbnail
             self.thumbnail = requests.get(self.thumbnail_src).content
             self.url = "https://youtube.com/watch?v="+self.video_id
-            self.mp3_src = YouTube(self.url).streams.get_audio_only("webm").url
+            self.mp3_src = pytube.YouTube(self.url).streams.filter(only_audio=True).last().url
 
             self.mp3_filename = f"{self.title}.mp3"
+            self.mp3_filename = re.sub(r'\\|/|:|\?|\"|\<|\>', ' ', self.mp3_filename)
 
         def __dict__(self):
             return {"video_id": self.video_id, "title": self.title, "thumbnail": self.thumbnail_src, "url": self.url}
@@ -35,13 +38,15 @@ class YouTube(object):
             except Exception as e:
                 exit(str(e))
 
-            self.mp3_full_path = f"{album_title}/{self.mp3_filename}"
+            self.mp3_full_path = re.sub(r'\\|/|:|\?|\"|\<|\>', '', album_title)+"/"+self.mp3_filename
+            
 
             with open(self.mp3_full_path, "wb") as mp3_file:
                 mp3_content = requests.get(self.mp3_src).content
                 mp3_file.write(mp3_content)
                 mp3_file.close()
-
+            
+            self.convert()
             self.set_metadata(album_title, remove_from_title="bladee - ")
 
         def _get_artist(self) -> str:
@@ -53,6 +58,12 @@ class YouTube(object):
                 artist_name = input("[x]Nome do artista não encontrado. Digite manualmente: ")
 
             return artist_name
+        
+        def convert(self):
+            subprocess.call(f'ffmpeg -i "{self.mp3_full_path}" "tmp-{self.mp3_filename}"', shell=True)
+            os.remove(self.mp3_full_path)
+            os.rename(f'tmp-{self.mp3_filename}', self.mp3_full_path)
+
 
         def set_metadata(self, album_title, remove_from_title=""):
             title = self.title.replace(remove_from_title, "")
@@ -67,6 +78,9 @@ class YouTube(object):
             
             mp3_file.initTag()
 
+            
+            mp3_file.tag.title = title
+            mp3_file.tag.track_num = self.track
             mp3_file.tag.artist = self._get_artist()
             mp3_file.tag.album = album_title
             mp3_file.tag.save()
@@ -93,19 +107,18 @@ class YouTube(object):
         def __repr__(self):
             return str(self.__dict__())
 
-        def download_all(self, album_title=""):
+        def download(self, album_title=""):
             if album_title != "":
                 self.title = album_title
-
-
-
-
+            
+            for track in self.tracks:
+                track.download(self.title)
 
     @staticmethod
-    def get_playlist_info(playlist_url: str) -> "Album":
-        print(1)
+    def get_playlist_info(playlist_url: str, remove_from_title: str="") -> "Album":
+        
         response = requests.get(playlist_url)
-        print(2)
+        
         if response.status_code != 200:
             return
 
@@ -115,8 +128,8 @@ class YouTube(object):
         playlist_id = json_info["playlistId"]
 
         tracks = []
-        print(2.5)
-        for video in json_info["contents"]:
+        
+        for track, video in enumerate(json_info["contents"]):
             video = video["playlistVideoRenderer"]
 
             video_title = video["title"]["runs"][0]["text"]
@@ -124,11 +137,10 @@ class YouTube(object):
             # Get the last thumbnail src. Last = better quality.
             video_thumbnail = video["thumbnail"]["thumbnails"][-1]["url"]
 
-            tracks.append(YouTube.Track(video_id=video_id, title=video_title, thumbnail=video_thumbnail))
+            tracks.append(YouTube.Track(video_id=video_id, title=video_title.replace(remove_from_title, ""), thumbnail=video_thumbnail, track=track+1))
 
-        print(3)
         response = requests.get(tracks[0].url)
-        print(4)
+
         try:
             album_name = re.search(r"(?<=\"metadataRowRenderer\":{\"title\":{\"simpleText\":\".lbum\"},\"contents\":\[{\"simpleText\":\").*?(?=\"}])", response.text).group()
         except:
@@ -139,5 +151,5 @@ class YouTube(object):
         print("[+]Álbum: "+album.title)
         print("[+]Número de músicas:", len(album.tracks))
 
-        album.tracks[0].download(album.title)
+        return album
 

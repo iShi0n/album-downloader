@@ -16,7 +16,7 @@ class SoundCloud(object):
             self.thumbnail = thumbnail
             self.stream_url = stream_url+"?client_id="+SoundCloud.client_id
             self.mp3_filename = self.title+".mp3"
-            self.mp3_filename = re.sub(r'\\|/|:|\?|\"|\<|\>', '', self.mp3_filename)
+            self.mp3_filename = re.sub(r'\\|/|:|\?|\"|\<|\>', ' ', self.mp3_filename)
             self.track = track
 
             # TODO mp3_fullpath
@@ -43,10 +43,10 @@ class SoundCloud(object):
 
         def download(self, album_title: str):
             self.album_title = album_title
-            self.mp3_fullpath = re.sub(r'\\|/|:|\?|\"|\<|\>', '', album_title)+"/"+self.mp3_filename
+            self.mp3_fullpath = re.sub(r'\\|/|:|\?|\"|\<|\>', ' ', album_title)+"/"+self.mp3_filename
 
 
-            with open(self.mp3_fullpath, "wb") as mp3_file: #TODO: remover \/:*?"<>| dos nomes das musicas"
+            with open(self.mp3_fullpath, "wb") as mp3_file:
                 mp3_content = requests.get(self.stream_url).content
                 mp3_file.write(mp3_content)
                 mp3_file.close()
@@ -54,7 +54,7 @@ class SoundCloud(object):
             self.set_metadata()
 
     class Album(object):
-        def __init__(self, playlist_id: str, album_title: str, permalink: str, thumbnail: str, tracks: "Tracks") -> None:
+        def __init__(self, playlist_id: str, album_title: str, permalink: str, thumbnail: str, tracks: "Track") -> None:
             self.album_title = album_title
             self.playlist_id = playlist_id
             self.permalink = permalink

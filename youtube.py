@@ -47,6 +47,12 @@ class YouTube(object):
             self.set_metadata(album_title, remove_from_title="bladee - ")
 
         def _get_artist(self) -> str:
+            """Parsea a página e retorna o nome do artista.
+
+            Returns:
+                str: nome do artista
+            """
+
             response = requests.get(self.url)
 
             try:
@@ -58,11 +64,20 @@ class YouTube(object):
             return artist_name
 
         def convert(self):
+            """Converte o arquivo ara mp3 para suportar as tags."""
+
             subprocess.call(f'ffmpeg -i "{self.mp3_full_path}" "tmp-{self.mp3_filename}"', shell=True, stdout=subprocess.DEVNULL, stdin=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
             os.remove(self.mp3_full_path)
             os.rename(f'tmp-{self.mp3_filename}', self.mp3_full_path)
 
         def set_metadata(self, album_title, remove_from_title=""):
+            """Seta os metadados do mp3
+
+            Args:
+                album_title ([type]): nome do album
+                remove_from_title (str, optional): string a ser removida do titulo da música. Defaults to "".
+            """
+
             title = self.title.replace(remove_from_title, "")
 
             mp3_file = eyed3.load(self.mp3_full_path)
@@ -98,6 +113,11 @@ class YouTube(object):
 
     @staticmethod
     def get_playlist_info(playlist_url: str, remove_from_title: str = "") -> "Album":
+        """Pega todas informações do album
+
+        Returns:
+            YouTube.Album: Objeto do tipo Album
+        """
 
         response = requests.get(playlist_url)
 

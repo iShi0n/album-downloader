@@ -42,6 +42,12 @@ class SoundCloud(object):
             mp3_file.tag.save()
 
         def download(self, album_title: str):
+            """Baixa a música
+
+            Args:
+                album_title (str): título do album
+            """
+
             self.title = album_title
             self.mp3_fullpath = re.sub(r'\\|/|:|\?|\"|\<|\>', ' ', album_title)+"/"+self.mp3_filename
 
@@ -65,6 +71,8 @@ class SoundCloud(object):
                 self.thumbnail = self.thumbnail.replace("large", "t500x500")
 
         def download(self):
+            """Baixa todas músicas do album."""
+
             try:
                 os.mkdir(self.title)
             except FileExistsError:
@@ -101,13 +109,11 @@ class SoundCloud(object):
             raise Exception(f"status code: {response.status_code}")
 
         try:
-            playlist_id = re.search(
-                r"(?<=soundcloud://playlists:)\d*", response.text).group()
+            playlist_id = re.search(r"(?<=soundcloud://playlists:)\d*", response.text).group()
         except:
             raise Exception("playlist_id not found")
 
-        tracks_json = requests.get(
-            f"https://api.soundcloud.com/playlists/{playlist_id}?client_id={SoundCloud.client_id}").json()
+        tracks_json = requests.get(f"https://api.soundcloud.com/playlists/{playlist_id}?client_id={SoundCloud.client_id}").json()
 
         tracks = []
 

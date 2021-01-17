@@ -36,13 +36,13 @@ class SoundCloud(object):
 
             mp3_file.tag.title = self.title
             mp3_file.tag.artist = self.artist
-            mp3_file.tag.album = self.album_title
+            mp3_file.tag.album = self.title
             mp3_file.tag.track_num  = self.track
-            mp3_file.tag.images.set(3, self.thumbnail_content, "image/jpeg", self.album_title)
+            mp3_file.tag.images.set(3, self.thumbnail_content, "image/jpeg", self.title)
             mp3_file.tag.save()
 
         def download(self, album_title: str):
-            self.album_title = album_title
+            self.title = album_title
             self.mp3_fullpath = re.sub(r'\\|/|:|\?|\"|\<|\>', ' ', album_title)+"/"+self.mp3_filename
 
 
@@ -54,8 +54,8 @@ class SoundCloud(object):
             self.set_metadata()
 
     class Album(object):
-        def __init__(self, playlist_id: str, album_title: str, permalink: str, thumbnail: str, tracks: "Track") -> None:
-            self.album_title = album_title
+        def __init__(self, playlist_id: str, title: str, permalink: str, thumbnail: str, tracks: "Track") -> None:
+            self.title = title
             self.playlist_id = playlist_id
             self.permalink = permalink
             self.thumbnail = thumbnail
@@ -66,19 +66,19 @@ class SoundCloud(object):
 
         def download(self):
             try:
-                os.mkdir(self.album_title)
+                os.mkdir(self.title)
             except FileExistsError:
                 pass
             except Exception as e:
                 exit(str(e))
 
-            with open(f"{self.album_title}/art.jpg", "wb") as art_file:
+            with open(f"{self.title}/art.jpg", "wb") as art_file:
                 art_content = requests.get(self.thumbnail).content
                 art_file.write(art_content)
                 art_file.close()
                 
             for track in self.tracks:
-                track.download(self.album_title)
+                track.download(self.title)
 
     @staticmethod
     def get_set_info(set_url: str, remove_from_title="") -> "Album":
@@ -121,10 +121,13 @@ class SoundCloud(object):
             tracks.append(SoundCloud.Track(title.replace(remove_from_title, ""), genre, artist, thumbnail, stream_url, track_num+1))
 
         album_id = tracks_json["id"]
-        album_title = tracks_json["title"]
+        title = tracks_json["title"]
         album_thumbnail = tracks_json["artwork_url"]
         album_permalink = tracks_json["permalink_url"]
 
-        album = SoundCloud.Album(album_id, album_title,album_permalink, album_thumbnail, tracks)
+        album = SoundCloud.Album(album_id, title,album_permalink, album_thumbnail, tracks)
+
+        print("[+]Álbum: "+album.title)
+        print("[+]Número de músicas:", len(album.tracks))
 
         return album

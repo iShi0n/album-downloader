@@ -29,6 +29,8 @@ class YouTube(object):
             return str(self.__dict__())
 
         def download(self, album_title: str):
+            #TODO: printar qual track está sendo baixada
+            
             self.mp3_full_path = re.sub(r'\\|/|:|\?|\"|\<|\>', '', album_title)+"/"+self.mp3_filename
 
             with open(self.mp3_full_path, "wb") as mp3_file:

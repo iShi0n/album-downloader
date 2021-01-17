@@ -47,6 +47,8 @@ class SoundCloud(object):
             Args:
                 album_title (str): título do album
             """
+            
+            #TODO: printar qual track está sendo baixada
 
             self.mp3_fullpath = re.sub(r'\\|/|:|\?|\"|\<|\>', ' ', album_title)+"/"+self.mp3_filename
 

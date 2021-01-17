@@ -15,7 +15,7 @@ class YouTube(object):
             self.title = title
             self.track = track
             self.thumbnail_src = thumbnail
-            self.thumbnail = requests.get(self.thumbnail_src).content
+            #self.thumbnail = requests.get(self.thumbnail_src).content
             self.url = "https://youtube.com/watch?v="+self.video_id
             self.mp3_src = pytube.YouTube(self.url).streams.filter(only_audio=True).last().url
 
@@ -29,13 +29,6 @@ class YouTube(object):
             return str(self.__dict__())
 
         def download(self, album_title: str):
-            try:
-                os.mkdir(album_title)
-            except FileExistsError:
-                pass
-            except Exception as e:
-                exit(str(e))
-
             self.mp3_full_path = re.sub(r'\\|/|:|\?|\"|\<|\>', '', album_title)+"/"+self.mp3_filename
 
             with open(self.mp3_full_path, "wb") as mp3_file:
@@ -90,9 +83,10 @@ class YouTube(object):
             mp3_file.tag.save()
 
     class Album(object):
-        def __init__(self, playlist_id: str, title: str, tracks: "Track") -> None:
+        def __init__(self, playlist_id: str, title: str, tracks: "Track", thumbnail: str) -> None:
             self.playlist_id = playlist_id
             self.title = title
+            self.thumbnail = thumbnail
             self.tracks = tracks
             self.url = "https://youtube.com/playlist?list="+self.playlist_id
 
@@ -107,6 +101,12 @@ class YouTube(object):
         def download(self, album_title=""):
             if album_title != "":
                 self.title = album_title
+
+            with open(f"{self.title}/art.jpg", "wb") as art_file:
+                art_content = requests.get(self.thumbnail).content
+                art_file.write(art_content)
+                art_file.close()
+                
 
             for track in self.tracks:
                 track.download(self.title)
@@ -130,6 +130,7 @@ class YouTube(object):
         playlist_id = json_info["playlistId"]
 
         tracks = []
+        album_thumbnail = ""
 
         for track, video in enumerate(json_info["contents"]):
             video = video["playlistVideoRenderer"]
@@ -138,6 +139,9 @@ class YouTube(object):
             video_id = video["videoId"]
             # Get the last thumbnail src. Last = better quality.
             video_thumbnail = video["thumbnail"]["thumbnails"][-1]["url"]
+            
+            if track == 0:
+                album_thumbnail = video_thumbnail
 
             tracks.append(YouTube.Track(video_id=video_id, title=video_title.replace(remove_from_title, ""), thumbnail=video_thumbnail, track=track+1))
 
@@ -148,7 +152,7 @@ class YouTube(object):
         except:
             album_name = input("[x]Nome do album não encontrado. Digite manualmente: ")
 
-        album = YouTube.Album(playlist_id, album_name, tracks)
+        album = YouTube.Album(playlist_id, album_name, tracks, album_thumbnail)
 
         print("[+]Álbum: "+album.title)
         print("[+]Número de músicas:", len(album.tracks))

@@ -30,7 +30,7 @@ class YouTube(object):
 
         def download(self, album_title: str):
             #TODO: printar qual track está sendo baixada
-            
+
             self.mp3_full_path = re.sub(r'\\|/|:|\?|\"|\<|\>', '', album_title)+"/"+self.mp3_filename
 
             with open(self.mp3_full_path, "wb") as mp3_file:
@@ -104,12 +104,19 @@ class YouTube(object):
             if album_title != "":
                 self.title = album_title
 
+            try:
+                os.mkdir(self.title)
+            except FileExistsError:
+                pass
+            except Exception as e:
+                exit(str(e))
+                
+
             with open(f"{self.title}/art.jpg", "wb") as art_file:
                 art_content = requests.get(self.thumbnail).content
                 art_file.write(art_content)
                 art_file.close()
                 
-
             for track in self.tracks:
                 track.download(self.title)
 

@@ -1,4 +1,5 @@
 from sys import argv
+import re
 from youtube import YouTube
 from soundcloud import SoundCloud
 
@@ -24,8 +25,9 @@ remove_from_title = ""
 if len(argv) == 3:
     remove_from_title = argv[2]
 
-#TODO: fazer checagem com regex
-if "youtube.com" in album:
+if re.search(r"^https?:\/\/(www\.)?youtube.com/playlist\?list=.*", album) != None:
     YouTube.get_playlist_info(album, remove_from_title).download()
-elif "soundcloud.com" in album:
+elif re.search(r"^https?:\/\/(www\.)?soundcloud.com/[a-z 0-9 _ \-]*/sets/[a-z 0-9 _ \-]*", album) != None:
     SoundCloud.get_set_info(album, remove_from_title).download()
+else:
+    print("error: invalid url")

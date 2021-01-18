@@ -19,8 +19,6 @@ class SoundCloud(object):
             self.mp3_filename = re.sub(r'\\|/|:|\?|\"|\<|\>', ' ', self.mp3_filename)
             self.track = track
 
-            # TODO mp3_fullpath
-
             if "large" in self.thumbnail:
                 self.thumbnail = self.thumbnail.replace("large", "t500x500")
             
@@ -51,17 +49,14 @@ class SoundCloud(object):
             Args:
                 album_title (str): nome do album
             """
-            
-            #TODO: printar qual track está sendo baixada
 
             self.mp3_fullpath = re.sub(r'\\|/|:|\?|\"|\<|\>', ' ', album_title)+"/"+self.mp3_filename
-
 
             with open(self.mp3_fullpath, "wb") as mp3_file:
                 mp3_content = requests.get(self.stream_url).content
                 mp3_file.write(mp3_content)
                 mp3_file.close()
-            
+        
             self.set_metadata(album_title)
 
     class Album(object):

@@ -29,7 +29,7 @@ class YouTube(object):
             return str(self.__dict__())
 
         def download(self, album_title: str):
-            #TODO: printar qual track está sendo baixada
+            # TODO: printar qual track está sendo baixada
 
             self.mp3_full_path = re.sub(r'\\|/|:|\?|\"|\<|\>', '', album_title)+"/"+self.mp3_filename
 
@@ -39,7 +39,7 @@ class YouTube(object):
                 mp3_file.close()
 
             self.convert()
-            self.set_metadata(album_title, remove_from_title="bladee - ")
+            self.set_metadata(album_title)
 
         def _get_artist(self) -> str:
             """Parsea a página e retorna o nome do artista.
@@ -65,27 +65,24 @@ class YouTube(object):
             os.remove(self.mp3_full_path)
             os.rename(f'tmp-{self.mp3_filename}', self.mp3_full_path)
 
-        def set_metadata(self, album_title, remove_from_title=""):
-            """Seta os metadados do mp3
+        def set_metadata(self, album_title):
+            """Seta os metadados no mp3
 
             Args:
-                album_title ([type]): nome do album
-                remove_from_title (str, optional): string a ser removida do titulo da música. Defaults to "".
+                album_title (str): nome do album
             """
-
-            title = self.title.replace(remove_from_title, "")
 
             mp3_file = eyed3.load(self.mp3_full_path)
             mp3_file.initTag()
 
-            mp3_file.tag.title = title
+            mp3_file.tag.title = self.title
             mp3_file.tag.track_num = self.track
             mp3_file.tag.artist = self._get_artist()
             mp3_file.tag.album = album_title
             mp3_file.tag.save()
 
     class Album(object):
-        def __init__(self, playlist_id: str, title: str, tracks: "Track", thumbnail: str) -> None:
+        def __init__(self, playlist_id: str, title: str, tracks: list["Track"], thumbnail: str) -> None:
             self.playlist_id = playlist_id
             self.title = title
             self.thumbnail = thumbnail
@@ -110,13 +107,12 @@ class YouTube(object):
                 pass
             except Exception as e:
                 exit(str(e))
-                
 
             with open(f"{self.title}/art.jpg", "wb") as art_file:
                 art_content = requests.get(self.thumbnail).content
                 art_file.write(art_content)
                 art_file.close()
-                
+
             for track in self.tracks:
                 track.download(self.title)
 
@@ -133,7 +129,8 @@ class YouTube(object):
         if response.status_code != 200:
             return
 
-        json_info = re.search(r"(?<=var ytInitialData = ).*?(?=;<\/script>)", response.text).group()
+        json_info = re.search(
+            r"(?<=var ytInitialData = ).*?(?=;<\/script>)", response.text).group()
         json_info = json.loads(json_info)
         json_info = json_info["contents"]["twoColumnBrowseResultsRenderer"]["tabs"][0]["tabRenderer"]["content"]["sectionListRenderer"]["contents"][0]["itemSectionRenderer"]["contents"][0]["playlistVideoListRenderer"]
         playlist_id = json_info["playlistId"]
@@ -148,7 +145,7 @@ class YouTube(object):
             video_id = video["videoId"]
             # Get the last thumbnail src. Last = better quality.
             video_thumbnail = video["thumbnail"]["thumbnails"][-1]["url"]
-            
+
             if track == 0:
                 album_thumbnail = video_thumbnail
 

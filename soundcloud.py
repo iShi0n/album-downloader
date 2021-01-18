@@ -65,7 +65,7 @@ class SoundCloud(object):
             self.set_metadata(album_title)
 
     class Album(object):
-        def __init__(self, playlist_id: str, title: str, permalink: str, thumbnail: str, tracks: "Track") -> None:
+        def __init__(self, playlist_id: str, title: str, permalink: str, thumbnail: str, tracks: list["Track"]) -> None:
             self.title = title
             self.playlist_id = playlist_id
             self.permalink = permalink
@@ -94,7 +94,7 @@ class SoundCloud(object):
                 track.download(self.title)
 
     @staticmethod
-    def get_set_info(set_url: str, remove_from_title="") -> "Album":
+    def get_set_info(set_url: str, remove_from_title: str="") -> "Album":
         """Pega informações do set (album/playlist).
 
         Args:

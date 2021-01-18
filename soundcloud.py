@@ -26,8 +26,12 @@ class SoundCloud(object):
             
             self.thumbnail_content = requests.get(self.thumbnail).content
 
-        def set_metadata(self):
-            """Seta os metadados no mp3"""
+        def set_metadata(self, album_title: str):
+            """Seta os metadados no mp3
+
+            Args:
+                album_title (str): nome do album
+            """
             
 
             mp3_file = eyed3.load(self.mp3_fullpath)
@@ -36,7 +40,7 @@ class SoundCloud(object):
 
             mp3_file.tag.title = self.title
             mp3_file.tag.artist = self.artist
-            mp3_file.tag.album = self.title
+            mp3_file.tag.album = album_title
             mp3_file.tag.track_num  = self.track
             mp3_file.tag.images.set(3, self.thumbnail_content, "image/jpeg", self.title)
             mp3_file.tag.save()
@@ -45,7 +49,7 @@ class SoundCloud(object):
             """Baixa a música
 
             Args:
-                album_title (str): título do album
+                album_title (str): nome do album
             """
             
             #TODO: printar qual track está sendo baixada
@@ -58,7 +62,7 @@ class SoundCloud(object):
                 mp3_file.write(mp3_content)
                 mp3_file.close()
             
-            self.set_metadata()
+            self.set_metadata(album_title)
 
     class Album(object):
         def __init__(self, playlist_id: str, title: str, permalink: str, thumbnail: str, tracks: "Track") -> None:

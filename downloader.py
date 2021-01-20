@@ -15,8 +15,9 @@ positional arguments:
 
 eg.: python3 {argv[0]} https://www.youtube.com/playlist?list=PLGeJR8ZOrTZdMuBWM9IYta6IoHKku0nH4 'bladee - '
 """
-
-if len(argv) < 2:
+if "-h" in argv or "--help" in argv:
+    exit(usage)
+elif len(argv) < 2:
     exit("error: invalid argvs\n"+usage)
 
 album = argv[1]

@@ -88,11 +88,13 @@ class SoundCloud(object):
             for track in self.tracks:
                 track.download(self.title)
 
-    @staticmethod
-    def get_set_info(set_url: str, remove_from_title: str="") -> "Album":
+    @classmethod
+    def get_set_info(cls: "SoundCloud", set_url: str, remove_from_title: str="") -> "Album":
         """Pega informações do set (album/playlist).
 
         Args:
+            cls (SoundCloud): classe pai. (parâmetro adicionado por ser um @classmethod)
+            set_url (str): url do set/playlist.
             remove_from_title (str, optional): remove um texto do titule da música. ex. se o titulo for bladee - romeo, você pode passar "bladee - " para a função para que seja removido. Defaults to "".
 
         Raises:
@@ -112,8 +114,8 @@ class SoundCloud(object):
             playlist_id = re.search(r"(?<=soundcloud://playlists:)\d*", response.text).group()
         except:
             raise Exception("playlist_id not found")
-
-        tracks_json = requests.get(f"https://api.soundcloud.com/playlists/{playlist_id}?client_id={SoundCloud.client_id}").json()
+        
+        tracks_json = requests.get(f"https://api.soundcloud.com/playlists/{playlist_id}?client_id={cls.client_id}").json()
 
         tracks = []
 
@@ -124,14 +126,14 @@ class SoundCloud(object):
             stream_url = track["stream_url"]
             thumbnail = track["artwork_url"]
 
-            tracks.append(SoundCloud.Track(title.replace(remove_from_title, ""), genre, artist, thumbnail, stream_url, track_num+1))
+            tracks.append(cls.Track(title.replace(remove_from_title, ""), genre, artist, thumbnail, stream_url, track_num+1))
 
         album_id = tracks_json["id"]
         title = tracks_json["title"]
         album_thumbnail = tracks_json["artwork_url"]
         album_permalink = tracks_json["permalink_url"]
 
-        album = SoundCloud.Album(album_id, title,album_permalink, album_thumbnail, tracks)
+        album = cls.Album(album_id, title,album_permalink, album_thumbnail, tracks)
 
         print("[+]Álbum: "+album.title)
         print("[+]Número de músicas:", len(album.tracks))

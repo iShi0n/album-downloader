@@ -116,18 +116,28 @@ class YouTube(object):
             for track in self.tracks:
                 track.download(self.title)
 
-    @staticmethod
-    def get_playlist_info(playlist_url: str, remove_from_title: str = "") -> "Album":
-        """Pega todas informações do album
+    @classmethod
+    def get_playlist_info(cls: "YouTube", playlist_url: str, remove_from_title: str = "") -> "Album":
+        """Pega informações da playlist.
+
+        Args:
+            cls (YouTube): classe YouTube. (adicionada pelo @classmethod).
+            playlist_url (str): url da playlist
+            remove_from_title (str, optional): remove um texto do titule da música. ex. se o titulo for bladee - romeo, você pode passar "bladee - " para a função para que seja removido. Defaults to "".
+
+        Raises:
+            Exception: Status code != 200
+            Exception: playlist_id not found
 
         Returns:
-            YouTube.Album: Objeto do tipo Album
+            Album: Objeto do album
         """
+        
 
         response = requests.get(playlist_url)
 
         if response.status_code != 200:
-            return
+            raise Exception(f"status code: {response.status_code}")
 
         json_info = re.search(
             r"(?<=var ytInitialData = ).*?(?=;<\/script>)", response.text).group()
@@ -149,7 +159,7 @@ class YouTube(object):
             if track == 0:
                 album_thumbnail = video_thumbnail
 
-            tracks.append(YouTube.Track(video_id=video_id, title=video_title.replace(remove_from_title, ""), thumbnail=video_thumbnail, track=track+1))
+            tracks.append(cls.Track(video_id=video_id, title=video_title.replace(remove_from_title, ""), thumbnail=video_thumbnail, track=track+1))
 
         response = requests.get(tracks[0].url)
 
@@ -158,9 +168,6 @@ class YouTube(object):
         except:
             album_name = input("[x]Nome do album não encontrado. Digite manualmente: ")
 
-        album = YouTube.Album(playlist_id, album_name, tracks, album_thumbnail)
-
-        print("[+]Álbum: "+album.title)
-        print("[+]Número de músicas:", len(album.tracks))
+        album = cls.Album(playlist_id, album_name, tracks, album_thumbnail)
 
         return album

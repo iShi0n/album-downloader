@@ -10,8 +10,8 @@ import pytube  # TODO: try to make it manually
 import requests
 
 
-class YouTube(object):
-    class Track(object):
+class YouTube:
+    class Track:
         def __init__(self, video_id: str, thumbnail: str, title: str, track: int) -> None:
             self.video_id = video_id
             self.title = title

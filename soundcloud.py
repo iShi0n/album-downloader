@@ -1,12 +1,14 @@
+from __future__ import annotations
+
 import requests
 import re
 import os
 import eyed3
 
-class SoundCloud(object):
+class SoundCloud:
     client_id = "N2eHz8D7GtXSl6fTtcGHdSJiS74xqOUI"
 
-    class Track(object):
+    class Track:
         """Classe para faixas do album"""
 
         def __init__(self, title: str, genre: str, artist: str, thumbnail: str, stream_url: str, track: int) -> None:
@@ -59,8 +61,8 @@ class SoundCloud(object):
         
             self.set_metadata(album_title)
 
-    class Album(object):
-        def __init__(self, playlist_id: str, title: str, permalink: str, thumbnail: str, tracks: list["Track"]) -> None:
+    class Album:
+        def __init__(self, playlist_id: str, title: str, permalink: str, thumbnail: str, tracks: list[SoundCloud.Track]) -> None:
             self.title = title
             self.playlist_id = playlist_id
             self.permalink = permalink
@@ -89,7 +91,7 @@ class SoundCloud(object):
                 track.download(self.title)
 
     @classmethod
-    def get_set_info(cls: "SoundCloud", set_url: str, remove_from_title: str="") -> "Album":
+    def get_set_info(cls: SoundCloud, set_url: str, remove_from_title: str="") -> "Album":
         """Pega informações do set (album/playlist).
 
         Args:

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import os
 import re
 import json
@@ -82,7 +84,7 @@ class YouTube(object):
             mp3_file.tag.save()
 
     class Album(object):
-        def __init__(self, playlist_id: str, title: str, tracks: list["Track"], thumbnail: str) -> None:
+        def __init__(self, playlist_id: str, title: str, tracks: list[YouTube.Track], thumbnail: str) -> None:
             self.playlist_id = playlist_id
             self.title = title
             self.thumbnail = thumbnail
